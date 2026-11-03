@@ -100,8 +100,8 @@ NeuroNix is an integrated intelligence platform designed to **predict, simulate,
 
 ---
 
-## 📽️ Demo
-🔗 [Live Video Link](https://drive.google.com/file/d/1DLNkkMClP6y6Jpv4cx4_qNEsMJ7Wx1uj/view?usp=drive_link)  
+<!-- ## 📽️ Demo
+🔗 [Live Video Link](https://drive.google.com/file/d/1DLNkkMClP6y6Jpv4cx4_qNEsMJ7Wx1uj/view?usp=drive_link)   -->
 
 ---
 ---
