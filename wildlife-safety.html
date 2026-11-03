@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FaunaSafe - Wildlife Corridor & Bio-Rescue Defense | NeuroNix</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Standalone FaunaSafe Glassmorphism Styling */
+        .fauna-dashboard-container {
+            padding: 85px 24px 30px 280px;
+            max-width: 1750px;
+            margin: 0 auto;
+            color: #F8FAFC;
+        }
+
+        @media (max-width: 1024px) {
+            .fauna-dashboard-container { padding-left: 20px; }
+        }
+
+        .fauna-hero-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(245, 158, 11, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 18px;
+            padding: 24px 30px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .fauna-hero-title h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #10B981;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 8px 0;
+        }
+
+        .fauna-hero-title p {
+            margin: 0;
+            color: #94A3B8;
+            font-size: 14px;
+        }
+
+        .jury-badge-pill {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: #000;
+            font-weight: 800;
+            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+        }
+
+        /* 4 Key Stats */
+        .fauna-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .fauna-stat-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 16px;
+            padding: 18px 20px;
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .fauna-stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .fauna-stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .icon-tiger { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .icon-trap { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .icon-corridor { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .icon-drone { background: rgba(59, 130, 246, 0.15); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        .fauna-stat-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #F8FAFC;
+        }
+
+        .fauna-stat-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #94A3B8;
+        }
+
+        /* 2-Column Main Workspace */
+        .fauna-main-layout {
+            display: grid;
+            grid-template-columns: 1.6fr 1.1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1200px) {
+            .fauna-main-layout { grid-template-columns: 1fr; }
+        }
+
+        .fauna-map-box {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 18px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .map-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .map-header-flex h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #E2E8F0;
+        }
+
+        .map-legend-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .legend-pill {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+        }
+
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-tiger { background: #F59E0B; }
+        .dot-corridor { background: #10B981; }
+        .dot-fire { background: #EF4444; }
+        .dot-drone { background: #3B82F6; }
+
+        #wildlife-gis-map {
+            width: 100%;
+            height: 520px;
+            border-radius: 14px;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            z-index: 1;
+        }
+
+        /* Right Panel Controls */
+        .fauna-control-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .fauna-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 18px;
+            padding: 22px;
+            backdrop-filter: blur(20px);
+        }
+
+        .card-header-styled {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            padding-bottom: 12px;
+        }
+
+        .card-header-styled h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            color: #F1F5F9;
+        }
+
+        .card-header-styled i {
+            color: #10B981;
+            font-size: 18px;
+        }
+
+        /* Acoustic UAV Control */
+        .drone-spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .spec-item {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+
+        .spec-item label {
+            display: block;
+            font-size: 11px;
+            color: #94A3B8;
+            margin-bottom: 4px;
+        }
+
+        .spec-item span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #38BDF8;
+        }
+
+        .action-button-emerald {
+            width: 100%;
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .action-button-emerald:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Veterinary Dispatch Box */
+        .vet-phone-input {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-bottom: 14px;
+        }
+
+        .vet-phone-input:focus {
+            outline: none;
+            border-color: #10B981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .vet-terminal-box {
+            background: #020617;
+            border: 1px solid #1E293B;
+            border-radius: 10px;
+            padding: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #38BDF8;
+            height: 120px;
+            overflow-y: auto;
+            margin-top: 14px;
+            line-height: 1.5;
+        }
+
+        .log-warn { color: #F59E0B; }
+        .log-success { color: #10B981; }
+        .log-crit { color: #EF4444; }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="brand">
+                    <i class="fas fa-fire-flame-curved"></i>
+                    NeuroNix
+                </div>
+                <div class="sidebar-tagline">Forest Fire Intelligence Platform</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Core Features</div>
+                <a href="index.html" class="sidebar-nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="risk-analysis.html" class="sidebar-nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Risk Assessment</span>
+                </a>
+                <a href="simulation.html" class="sidebar-nav-link">
+                    <i class="fas fa-fire"></i>
+                    <span>Fire Simulation</span>
+                </a>
+                <a href="optimization.html" class="sidebar-nav-link">
+                    <i class="fas fa-route"></i>
+                    <span>Resource Planning</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Monitoring & Analysis</div>
+                <a href="monitoring.html" class="sidebar-nav-link">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>Live Monitoring</span>
+                </a>
+                <a href="visualization.html" class="sidebar-nav-link">
+                    <i class="fas fa-cube"></i>
+                    <span>3D Visualization</span>
+                </a>
+                <a href="analytics.html" class="sidebar-nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Data Analytics</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Wildlife Defense <span style="font-size: 9px; background: #10B981; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 800; margin-left: 5px;">NEW</span></div>
+                <a href="wildlife-safety.html" class="sidebar-nav-link active">
+                    <i class="fas fa-paw"></i>
+                    <span>FaunaSafe Rescue</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Professional Fixed Header -->
+    <header class="fixed-header">
+        <div class="header-container">
+            <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="header-controls">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search sanctuaries, corridors, species...">
+                </div>
+                <div class="header-status">
+                    <div class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">FaunaSafe Online</span>
+                    </div>
+                    <div class="last-update">
+                        <i class="fas fa-sync-alt"></i>
+                        <span id="header-update-time">Real-time Telemetry</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main FaunaSafe Dashboard -->
+    <main class="fauna-dashboard-container">
+        
+        <!-- Hero Banner -->
+        <div class="fauna-hero-banner">
+            <div class="fauna-hero-title">
+                <h1><i class="fas fa-paw"></i> FaunaSafe AI — Wildlife Defense & Corridor Rescue</h1>
+                <p>Autonomous animal entrapment prediction, acoustic UAV herd-steering, and sanctuary emergency bio-dispatch</p>
+            </div>
+            <div>
+                <span class="jury-badge-pill"><i class="fas fa-award"></i> Jury Feedback Add-on</span>
+            </div>
+        </div>
+
+        <!-- 4 Key Metrics -->
+        <div class="fauna-metrics-grid">
+            <div class="fauna-stat-card">
+                <div class="fauna-stat-icon icon-tiger"><i class="fas fa-shield-cat"></i></div>
+                <div class="fauna-stat-info">
+                    <h3>4 Sanctuaries</h3>
+                    <p>Corbett, Rajaji, Binsar & Askot Monitored</p>
+                </div>
+            </div>
+            <div class="fauna-stat-card">
+                <div class="fauna-stat-icon icon-trap"><i class="fas fa-triangle-exclamation"></i></div>
+                <div class="fauna-stat-info">
+                    <h3 style="color: #EF4444;">86.4% Alert</h3>
+                    <p>Elephant Corridor Pinch-Point Encircled</p>
+                </div>
+            </div>
+            <div class="fauna-stat-card">
+                <div class="fauna-stat-icon icon-corridor"><i class="fas fa-water"></i></div>
+                <div class="fauna-stat-info">
+                    <h3 style="color: #10B981;">3 Escape Routes</h3>
+                    <p>Ramganga & Kosi River Safe Basins</p>
+                </div>
+            </div>
+            <div class="fauna-stat-card">
+                <div class="fauna-stat-icon icon-drone"><i class="fas fa-helicopter"></i></div>
+                <div class="fauna-stat-info">
+                    <h3 style="color: #38BDF8;">6 Bio-Drones</h3>
+                    <p>Acoustic Deterrent Units Airborne</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2-Column Main Workspace -->
+        <div class="fauna-main-layout">
+            
+            <!-- Left: GIS Map -->
+            <div class="fauna-map-box">
+                <div class="map-header-flex">
+                    <h2><i class="fas fa-map-location-dot"></i> Live Wildlife Sanctuary GIS & Escape Corridors</h2>
+                    <div class="map-legend-pills">
+                        <span class="legend-pill"><span class="legend-dot dot-fire"></span> Active Fire Front</span>
+                        <span class="legend-pill"><span class="legend-dot dot-corridor"></span> Fauna Escape Corridor</span>
+                        <span class="legend-pill"><span class="legend-dot dot-tiger"></span> Sanctuary Buffer</span>
+                        <span class="legend-pill"><span class="legend-dot dot-drone"></span> Acoustic UAV Patrol</span>
+                    </div>
+                </div>
+
+                <div id="wildlife-gis-map"></div>
+
+                <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; color: #94A3B8;"><i class="fas fa-circle-info" style="color: #F59E0B;"></i> Green dashed lines indicate AI-modeled safe escape pathways leading toward river water bodies.</span>
+                    <button class="action-button-emerald" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="simulateWildlifeMigration()">
+                        <i class="fas fa-play"></i> Simulate Herd Migration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Bio-Response Command Center -->
+            <div class="fauna-control-column">
+                
+                <!-- Acoustic Drone Herd Steering -->
+                <div class="fauna-card">
+                    <div class="card-header-styled">
+                        <i class="fas fa-bullhorn"></i>
+                        <h3>Acoustic Drone Herd-Steering Command</h3>
+                    </div>
+                    <p style="font-size: 13px; color: #94A3B8; margin-top: 0;">Thermal UAVs emit targeted ultrasonic sweeps (16–22 kHz) to safely herd trapped animals away from fire lines toward open river basins.</p>
+                    
+                    <div class="drone-spec-grid">
+                        <div class="spec-item">
+                            <label>Assigned UAV Squadron</label>
+                            <span>AeroRescue Beta-4</span>
+                        </div>
+                        <div class="spec-item">
+                            <label>Acoustic Frequency</label>
+                            <span>18.5 kHz (Non-lethal)</span>
+                        </div>
+                        <div class="spec-item">
+                            <label>Target Sanctuary</label>
+                            <span>Corbett Zone Sector 4</span>
+                        </div>
+                        <div class="spec-item">
+                            <label>Safe Destination</label>
+                            <span>Ramganga River Basin</span>
+                        </div>
+                    </div>
+
+                    <button class="action-button-emerald" id="btn-deploy-drone" onclick="deployAcousticDrones()">
+                        <i class="fas fa-paper-plane"></i> Deploy Acoustic Herd-Steering Drones
+                    </button>
+                </div>
+
+                <!-- Wildlife Veterinary SOS Dispatch -->
+                <div class="fauna-card">
+                    <div class="card-header-styled">
+                        <i class="fas fa-truck-medical" style="color: #EF4444;"></i>
+                        <h3>Wildlife SOS & Veterinary Rapid Dispatch</h3>
+                    </div>
+                    <p style="font-size: 13px; color: #94A3B8; margin-top: 0;">Direct satellite & cellular SMS/Voice dispatch to Forest Dept Wildlife Veterinarians and Animal Rescue Units.</p>
+
+                    <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">Forest Ranger / Vet Mobile Number:</label>
+                    <input type="text" id="vet-phone-input" class="vet-phone-input" value="+919028292209" placeholder="+91XXXXXXXXXX">
+
+                    <button class="action-button-emerald" style="background: linear-gradient(135deg, #EF4444, #B91C1C); box-shadow: 0 4px 15px rgba(239,68,68,0.3);" id="btn-vet-dispatch" onclick="triggerWildlifeVetDispatch()">
+                        <i class="fas fa-phone-volume"></i> Dispatch Emergency Wildlife Squad
+                    </button>
+
+                    <div class="vet-terminal-box" id="vet-terminal">
+                        [FAUNASAFE BIO-CORE ONLINE]<br>
+                        > System standby: Monitoring Jim Corbett & Rajaji Corridors...<br>
+                        > Ready for autonomous bio-dispatch.
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize FaunaSafe Map
+        let map;
+        let droneMarker;
+        let fireCircle;
+        let corridorPolyline;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initFaunaMap();
+        });
+
+        function initFaunaMap() {
+            // Centered on Uttarakhand Wildlife Belt (Jim Corbett / Nainital)
+            map = L.map('wildlife-gis-map').setView([29.53, 78.96], 10);
+
+            // OpenStreetMap Basemap (100% Free, No Watermark, No API Key)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+
+            // 1. Sanctuaries & Habitats
+            const sanctuaries = [
+                { name: "Jim Corbett National Park (Tiger Core)", coords: [29.53, 78.96], icon: "🐅", color: "#F59E0B", radius: 7000 },
+                { name: "Rajaji Elephant Migratory Corridor", coords: [29.98, 78.25], icon: "🐘", color: "#3B82F6", radius: 5500 },
+                { name: "Binsar Wildlife Sanctuary (Herbivore Haven)", coords: [29.70, 79.75], icon: "🦌", color: "#10B981", radius: 4500 },
+                { name: "Ramganga River Wildlife Refuge", coords: [29.62, 79.08], icon: "🌊", color: "#06B6D4", radius: 4000 }
+            ];
+
+            sanctuaries.forEach(s => {
+                L.circle(s.coords, {
+                    color: s.color,
+                    fillColor: s.color,
+                    fillOpacity: 0.15,
+                    weight: 2,
+                    radius: s.radius
+                }).addTo(map).bindPopup(`<b>${s.icon} ${s.name}</b><br>Species Protection Zone<br>Status: Monitored`);
+
+                const customIcon = L.divIcon({
+                    html: `<div style="font-size: 24px; filter: drop-shadow(0 0 8px ${s.color});">${s.icon}</div>`,
+                    className: 'fauna-marker-icon',
+                    iconSize: [30, 30]
+                });
+                L.marker(s.coords, { icon: customIcon }).addTo(map);
+            });
+
+            // 2. Active Wildfire Perimeter (Encroaching Sector 4)
+            fireCircle = L.circle([29.47, 78.90], {
+                color: '#EF4444',
+                fillColor: '#EF4444',
+                fillOpacity: 0.45,
+                radius: 3500,
+                weight: 2
+            }).addTo(map).bindPopup("<b>🔥 Active Wildfire Front</b><br>Encroaching Jim Corbett Buffer Sector 4<br>Intensity: Critical (High Rate of Spread)");
+
+            // 3. Fauna Escape Green Corridor (Safe Route to River Basin)
+            const escapeRoute = [
+                [29.51, 78.93],
+                [29.55, 78.99],
+                [29.58, 79.04],
+                [29.62, 79.08] // Ramganga River Basin
+            ];
+
+            corridorPolyline = L.polyline(escapeRoute, {
+                color: '#10B981',
+                weight: 5,
+                dashArray: '8, 8',
+                opacity: 0.85
+            }).addTo(map).bindPopup("<b>🧭 AI Fauna Escape Corridor</b><br>Route: Corbett Sector 4 ➔ Ramganga River Basin<br>Status: 100% Clear of Fire & Smoke");
+
+            // 4. Acoustic Drone Patrol Marker
+            const droneIcon = L.divIcon({
+                html: `<div style="font-size: 20px; color: #38BDF8; filter: drop-shadow(0 0 10px #38BDF8);"><i class="fas fa-helicopter"></i></div>`,
+                className: 'drone-icon',
+                iconSize: [25, 25]
+            });
+            droneMarker = L.marker([29.50, 78.91], { icon: droneIcon }).addTo(map).bindPopup("<b>🚁 AeroRescue UAV Beta-4</b><br>Acoustic Deterrent: ACTIVE (18.5 kHz)<br>Mission: Guiding elephant herd toward river");
+        }
+
+        // Simulate Herd Migration along Escape Corridor
+        function simulateWildlifeMigration() {
+            const terminal = document.getElementById('vet-terminal');
+            terminal.innerHTML += `<br><span class="log-warn">> [SIMULATION] Initiating wildlife herd migration modeling...</span>`;
+            terminal.innerHTML += `<br><span class="log-success">> [AI] Tracking 18 Asian Elephants & 40+ Herbivores in Sector 4.</span>`;
+            terminal.innerHTML += `<br><span class="log-success">> [CORRIDOR] Clear escape path verified toward Ramganga Basin.</span>`;
+            terminal.scrollTop = terminal.scrollHeight;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const speech = new SpeechSynthesisUtterance("FaunaSafe alert: Modeling animal migration corridor toward Ramganga River Basin.");
+                speech.rate = 1.0;
+                window.speechSynthesis.speak(speech);
+            }
+        }
+
+        // Deploy Acoustic Drones
+        function deployAcousticDrones() {
+            const btn = document.getElementById('btn-deploy-drone');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Steer Drones Active...`;
+            btn.disabled = true;
+
+            const terminal = document.getElementById('vet-terminal');
+            terminal.innerHTML += `<br><span class="log-warn">> [UAV COMMAND] Launching 4 Acoustic Herd-Steering Drones...</span>`;
+            
+            setTimeout(() => {
+                terminal.innerHTML += `<br><span class="log-success">> [UAV #1 & #2] Emitting 18.5 kHz ultrasonic sweep at fire perimeter.</span>`;
+                terminal.innerHTML += `<br><span class="log-success">> [RESULT] Animal herds steering away from fire line toward river gap!</span>`;
+                terminal.scrollTop = terminal.scrollHeight;
+                btn.innerHTML = `<i class="fas fa-check"></i> Herd Steering Active`;
+                btn.style.background = '#059669';
+            }, 1200);
+        }
+
+        // Dispatch Emergency Wildlife Squad (Real Twilio Call & SMS!)
+        async function triggerWildlifeVetDispatch() {
+            const phoneInput = document.getElementById('vet-phone-input');
+            const phone = phoneInput ? phoneInput.value.trim() : '+919028292209';
+            const terminal = document.getElementById('vet-terminal');
+            const btn = document.getElementById('btn-vet-dispatch');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Calling Wildlife SOS...`;
+
+            terminal.innerHTML += `<br><span class="log-crit">> [CRITICAL BIO-ALERT] Fire encircling Jim Corbett Elephant Corridor!</span>`;
+            terminal.innerHTML += `<br>> Target Vet Squad: ${phone}`;
+            terminal.innerHTML += `<br>> Contacting emergency telephony gateway...`;
+            terminal.scrollTop = terminal.scrollHeight;
+
+            try {
+                const response = await fetch('http://localhost:5001/api/ml/dispatch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: phone,
+                        location: 'Jim Corbett Tiger Reserve (Sector 4 Wildlife Corridor)',
+                        severity: 'CRITICAL (WILDLIFE THREAT)',
+                        risk_level: 'Extreme',
+                        lat: 29.53,
+                        lng: 78.96
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    terminal.innerHTML += `<br><span class="log-success">> [SUCCESS] Real SMS dispatched to ${phone}!</span>`;
+                    terminal.innerHTML += `<br><span class="log-success">> [CALL INITIATED] Automated AI Voice calling Wildlife Squad phone now!</span>`;
+                    btn.innerHTML = `<i class="fas fa-check-double"></i> Bio-Squad Dispatched!`;
+                    btn.style.background = '#10B981';
+
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const speech = new SpeechSynthesisUtterance("Emergency Wildlife Alert! Wildfire encroaching Jim Corbett elephant corridor sector four. Veterinary bio-rescue squad dispatched.");
+                        speech.rate = 1.0;
+                        window.speechSynthesis.speak(speech);
+                    }
+                } else {
+                    throw new Error(data.error || 'Dispatch error');
+                }
+            } catch (err) {
+                terminal.innerHTML += `<br><span class="log-warn">> [DISPATCH NOTICE] ${err.message}</span>`;
+                btn.innerHTML = `<i class="fas fa-paper-plane"></i> Dispatch Emergency Wildlife Squad`;
+                btn.disabled = false;
+            }
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+    </script>
+</body>
+</html>
+
