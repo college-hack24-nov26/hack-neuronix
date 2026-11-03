@@ -11,8 +11,8 @@ NeuroNix is an integrated intelligence platform designed to **predict, simulate,
 
 ## 👨‍💻 Team Information — Team NeuroNix
 - **Rohit Ratnaparkhi** ([@ratnaparkhirohit0-ctrl](https://github.com/ratnaparkhirohit0-ctrl)) — AI/ML Architecture & Data Pipeline
-- **Huzaifa Khan** ([@HuzaifaKhan-1](https://github.com/HuzaifaKhan-1)) — Frontend Engineering & Geospatial Visualization
-- **Om** — Backend Services, IoT Telemetry & Emergency Alert Dispatch
+- **Huzaifa Khan** ([@its-huzaifa](https://github.com/its-huzaifa)) — Frontend Engineering & Geospatial Visualization
+- **Om Shingare** ([@Om-Shingare](https://github.com/Om-Shingare)) — Backend Services, IoT Telemetry & Emergency Alert Dispatch
 
 ---
 
