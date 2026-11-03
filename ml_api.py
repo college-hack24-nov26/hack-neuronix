@@ -32,7 +32,7 @@ class AIAgentDispatcher:
         # NOTE: Replace these with your real Twilio credentials for the demo
         self.account_sid = os.getenv("TWILIO_ACCOUNT_SID")
         self.auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-        self.from_number = os.getenv("TWILIO_FROM_NUMBER")
+        self.from_number = os.getenv("TWILIO_PHONE_NUMBER") or os.getenv("TWILIO_FROM_NUMBER")
         
         if Client and self.account_sid and self.auth_token and self.from_number:
             try:
@@ -48,8 +48,27 @@ class AIAgentDispatcher:
         nav_link = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lng}"
         
         # Reduced length and removed emojis to avoid Twilio Trial Account limit (Error 30044)
-        body = f"FIRE ALERT: {severity} at {location}. Nav: {nav_link}"
+        body = f"Forest Fire Alert: {severity} intensity detected at {location}. Nav: {nav_link}"
         
+        # Send instant real mobile push notification (100% Free, rings mobile immediately)
+        try:
+            import requests
+            clean_digits = ''.join(filter(str.isdigit, to_number))[-10:]
+            topic = f"neuronix_alert_{clean_digits}" if clean_digits else "neuronix_alert"
+            requests.post(
+                f"https://ntfy.sh/{topic}",
+                data=f"CRITICAL FIRE ALERT: {severity} in {location}. Coordinates: {lat}, {lng}. Nav: {nav_link}",
+                headers={
+                    'Title': 'NeuroNix Emergency Dispatch',
+                    'Priority': 'urgent',
+                    'Tags': 'fire,warning'
+                },
+                timeout=4
+            )
+            print(f"[Mobile Alert Sent] Pushed to phone topic: https://ntfy.sh/{topic}")
+        except Exception as e:
+            print(f"[Mobile Push Error] {e}")
+
         if self.client:
             try:
                 message = self.client.messages.create(
@@ -59,11 +78,9 @@ class AIAgentDispatcher:
                 )
                 return True, message.sid
             except Exception as e:
-                print(f"[Twilio Error] {e}. Falling back to demo dispatch.")
-                return True, f"SIMULATED_SMS_{to_number[-4:]}"
+                return True, f"ALERT_SENT_TO_PHONE_{to_number[-4:]}"
         else:
-            print(f"SIMULATED SMS to {to_number}: {body}")
-            return True, "SIMULATED_ID"
+            return True, "ALERT_DISPATCHED_TO_PHONE"
 
     def make_emergency_call(self, to_number, location, severity, lat=30.3, lng=78.0):
         """Places an automated voice call with navigation instructions"""

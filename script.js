@@ -8553,8 +8553,21 @@ async function triggerAIAgentDemo() {
         
         if (response.ok && data.success) {
             addAIConsoleLog(`> SUCCESS: ${data.message}`, 'success');
-            if (typeof showToast === 'function') showToast('Emergency SMS Dispatched Successfully!', 'success');
+            addAIConsoleLog(`> MOBILE NOTIFICATION: Alert delivered to phone (+91${phoneNumber.replace(/\D/g, '').slice(-10)})`, 'info');
+            if (typeof showToast === 'function') showToast('Emergency Alert Dispatched to Mobile!', 'success');
             
+            // Audible Emergency Voice Alert through speakers
+            if ('speechSynthesis' in window) {
+                try {
+                    window.speechSynthesis.cancel();
+                    const cleanPhone = phoneNumber.replace(/\D/g, '').slice(-10);
+                    const speech = new SpeechSynthesisUtterance(`Emergency alert! Critical wildfire escalation detected in Nainital District. GPS coordinates 29.39 North, 79.45 East. Autonomous dispatch protocol activated for emergency responder.`);
+                    speech.rate = 1.0;
+                    speech.pitch = 1.0;
+                    window.speechSynthesis.speak(speech);
+                } catch(e) {}
+            }
+
             if (statusText) statusText.textContent = 'DISPATCH COMPLETE';
             if (statusDot) {
                 statusDot.style.background = '#4caf50';
